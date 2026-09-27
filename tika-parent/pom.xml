@@ -1640,6 +1640,20 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>io.github.zju-aces-ise</groupId>
+        <artifactId>chatunitest-maven-plugin</artifactId>
+        <version>2.1.1</version>
+        <configuration>
+          <url>http://127.0.0.1:8085/chat/completions</url>
+          <model>gpt-4o-mini</model>
+          <apiKeys>
+            <openaiKey>${env.GEMINI_API_KEY}</openaiKey>
+          </apiKeys>
+          <maxRounds>3</maxRounds>
+          <testNumber>3</testNumber>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
