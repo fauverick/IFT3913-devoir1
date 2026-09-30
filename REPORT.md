@@ -37,7 +37,7 @@ While ChatUniTest incorporates an internal compile-and-repair loop (querying the
 
 ## 3. Extent of Manual Interventions Needed
 
-The required interventions fall into four distinct areas:
+The required interventions fall into five distinct technical areas, which motivated establishing a codified mitigation workflow:
 
 ### A. Code Style & Linter Violations (Required for Every Test)
 * **Problem:** ChatUniTest systematically injects wildcard / star imports:
@@ -73,6 +73,9 @@ The required interventions fall into four distinct areas:
 * **Problem:** Apache Tika uses `@TikaComponent` annotation processing during `mvn compile` to generate `META-INF/services/` and `META-INF/tika/*.idx`.
 * **Impact:** If the build directory is partially cleaned or overwritten, parser discovery fails at runtime (`Unknown component type: 'pdf-parser'` or fallback to `EmptyParser`).
 * **Manual Intervention:** Re-run `mvn compile -pl <module>` to trigger annotation processing and regenerate SPI descriptor files.
+
+### F. Workflow Mitigation: The `chatunitest-generator` Skill
+Because ChatUniTest operates in isolation from project-wide linting and build standards, every test generation round predictably produces code that requires manual refinement (e.g., illegal star imports, missing test dependencies, orphaned test binaries, and fragile assertions). To prevent recurring developer friction and standardize the remediation process early on, we created the [`.agents/skills/chatunitest-generator/SKILL.md`](.agents/skills/chatunitest-generator/SKILL.md) skill. This skill encodes the systematic runbook needed to clean, reformat, compile, and validate ChatUniTest outputs to meet Apache Tika's strict engineering conventions.
 
 ---
 
