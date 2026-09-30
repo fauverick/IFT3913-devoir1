@@ -1,216 +1,126 @@
 # Test Documentation
 
-This document provides a concise description of each unit test added as part of this assignment. Tests cover six target methods across two modules, generated via **ChatUniTest** and manually reviewed/fixed before integration.
+Tests cover six methods across two modules, generated via **ChatUniTest** and manually reviewed before integration.
 
 ---
 
-## Module: `tika-core` — `org.apache.tika.utils.StringUtils`
+## Module: `tika-core` — `StringUtils`
 
-**File:** `tika-core/src/test/java/org/apache/tika/utils/StringUtilsTest.java`
-**Baseline coverage:** 0.0% instructions / 0.0% branches (all methods)
-**After:** 97% instructions / 98% branches
+**File:** `tika-core/src/test/java/org/apache/tika/utils/StringUtilsTest.java`  
+**Coverage:** 0% → 97% instructions / 98% branches
 
-### `isEmpty(CharSequence cs)`
+### `isEmpty(CharSequence cs)` — 5 tests
 
-| Test | Input | Expected | Rationale |
-|:---|:---|:---|:---|
-| `testIsEmptyWithNull` | `null` | `true` | Null guard — first branch of the `||` condition |
-| `testIsEmptyWithEmptyString` | `""` | `true` | Empty `String` → `cs.isEmpty()` returns true |
-| `testIsEmptyWithNonEmptyString` | `"hello"` | `false` | Non-empty string → false |
-| `testIsEmptyWithWhitespaceString` | `" "` | `false` | Whitespace is not empty (distinguishes `isEmpty` from `isBlank`) |
-| `testIsEmptyWithStringBuilder` | `new StringBuilder()` / `new StringBuilder("test")` | `true` / `false` | Validates `CharSequence` polymorphism beyond `String` |
+| Test | Scenario |
+|:---|:---|
+| `testIsEmptyWithNull` | `null` → `true` (null guard) |
+| `testIsEmptyWithEmptyString` | `""` → `true` |
+| `testIsEmptyWithNonEmptyString` | `"hello"` → `false` |
+| `testIsEmptyWithWhitespaceString` | `" "` → `false` (distinguishes from `isBlank`) |
+| `testIsEmptyWithStringBuilder` | Empty/non-empty `StringBuilder` — validates `CharSequence` polymorphism |
 
-### `leftPad(String str, int size, String padStr)`
+### `leftPad(String, int, String)` — 7 tests
 
-| Test | Scenario | Rationale |
-|:---|:---|:---|
-| `testLeftPadStringNullInput` | `str = null` | Null guard: returns null immediately |
-| `testLeftPadStringEmptyPadStr` | `padStr = ""` / `null` | Empty/null padStr normalised to single space |
-| `testLeftPadStringNoPaddingNeeded` | `pads <= 0` | No padding needed: original string returned |
-| `testLeftPadStringSingleCharPad` | `padLen == 1` | Single-char pad delegates to `leftPad(char)` overload |
-| `testLeftPadStringExactPadLength` | `pads == padLen` | Exact fit: `padStr.concat(str)` |
-| `testLeftPadStringPadsLessThanPadLen` | `pads < padLen` | Partial pad: `padStr.substring(0, pads)` |
-| `testLeftPadStringPadsGreaterThanPadLen` | `pads > padLen` | Cyclic char array fill loop |
+One test per structural branch: null input, empty/null padStr (normalised to space), no padding needed (`pads <= 0`), single-char pad (delegates to char overload), exact fit (`pads == padLen`), partial pad (`pads < padLen`), cyclic fill (`pads > padLen`).
 
-### `leftPad(String str, int size, char padChar)`
+### `leftPad(String, int, char)` — 4 tests
 
-| Test | Scenario | Rationale |
-|:---|:---|:---|
-| `testLeftPadCharNullInput` | `str = null` | Null guard |
-| `testLeftPadCharNoPaddingNeeded` | `pads <= 0` | No padding needed |
-| `testLeftPadCharNormalPadding` | `pads > 0, pads <= PAD_LIMIT` | Normal path: `repeat(padChar, pads).concat(str)` |
-| `testLeftPadCharExceedPadLimit` | `pads > PAD_LIMIT` (via `PAD_LIMIT = 5`) | Overflow branch: delegates to String overload |
+Null input, no padding needed, normal path (`pads <= PAD_LIMIT`), overflow branch (`pads > PAD_LIMIT`, forced via `PAD_LIMIT = 5`).
 
-### `repeat(char ch, int repeat)`
+### `repeat(char, int)` — 2 tests
 
-| Test | Scenario | Rationale |
-|:---|:---|:---|
-| `testRepeatCharZeroOrNegative` | `repeat <= 0` | Returns `EMPTY` — fast-exit branch |
-| `testRepeatCharPositive` | `repeat = 1, 3, 4` | Normal char fill loop |
+Fast-exit (`repeat <= 0` → `EMPTY`), normal char-fill loop.
 
-### `repeat(String str, int repeat)`
+### `repeat(String, int)` — 6 tests
 
-| Test | Scenario | Rationale |
-|:---|:---|:---|
-| `testRepeatStringNull` | `str = null` | Null guard |
-| `testRepeatStringZeroOrNegative` | `repeat <= 0` | Returns `EMPTY` |
-| `testRepeatStringOneOrEmptyInput` | `repeat == 1` / `inputLength == 0` | Identity fast-path |
-| `testRepeatStringSingleCharWithPadLimit` | `inputLength == 1, repeat <= PAD_LIMIT` and `> PAD_LIMIT` (via `PAD_LIMIT = 5`) | Both sub-branches of the single-char fast-path |
-| `testRepeatStringInputLengthTwo` | `inputLength == 2` | Switch `case 2`: optimised two-char array loop |
-| `testRepeatStringInputLengthDefault` | `inputLength > 2` | Switch `default`: `StringBuilder.append` loop |
+Null input, zero/negative repeat, identity fast-path (`repeat == 1` or `inputLength == 0`), single-char with both PAD_LIMIT sub-branches, `inputLength == 2` (switch `case 2`), `inputLength > 2` (switch `default`).
 
 ---
 
-## Module: `tika-parser-pdf-module` — `org.apache.tika.parser.pdf.PDFParser`
+## Module: `tika-parser-pdf-module` — `PDFParser`
 
-### `renderPDF(TikaInputStream, ParseContext, PDFParserConfig)`
+### `renderPDF(TikaInputStream, ParseContext, PDFParserConfig)` — 1 test
 
-**File:** `…/pdf/PDFParser_renderPDF_10_0_Test.java`
-**Baseline:** 0.0% (method unreachable — caller exits early when `RENDER_PAGES_BEFORE_PARSE` is inactive)
+**File:** `…/PDFParser_renderPDF_10_0_Test.java` | **Coverage:** 0% → 100%
 
-| Test | Scenario | Rationale |
+`testRenderPDF`: Mocked `Renderer` wired via `setRenderer()`; private method invoked via reflection. Establishes reachability and verifies a `RenderResults` object is returned.
+
+### `extractSignatures(PDDocument, Metadata)` — 3 tests
+
+**File:** `…/PDFParser_extractSignatures_7_0_Test.java` | **Coverage:** 32.7% → ~90% instructions
+
+| Test | Scenario | Assertions |
 |:---|:---|:---|
-| `testRenderPDF` | Mocked `Renderer` wired via `setRenderer()`; private method invoked via reflection | Establishes reachability of the method body; verifies `RenderResults` is returned from the renderer call |
+| `testExtractSignaturesEmpty` | Empty field list | `HAS_SIGNATURE_FIELDS` and `HAS_SIGNATURE` absent |
+| `testExtractSignaturesNullSignature` | One unsigned field | `HAS_SIGNATURE_FIELDS = "true"`, `HAS_SIGNATURE` absent |
+| `testExtractSignaturesValid` | Fully signed field | All 7 metadata keys asserted; exercises the previously dead signed-field block |
 
-> **Design note:** The method is private and has no public entry point without enabling `RENDER_PAGES_BEFORE_PARSE`. Reflection (`getDeclaredMethod` + `setAccessible(true)`) is used to invoke it directly. `Renderer` is mocked to avoid filesystem/PDF-rendering dependencies.
+`PDDocument`, `PDSignatureField`, and `PDSignature` are mocked; private method accessed via reflection.
 
----
+### `shouldSpool(PDFParserConfig)` — 6 tests
 
-### `extractSignatures(PDDocument, Metadata)`
+**File:** `…/PDFParser_shouldSpool_8_0_Test.java` | **Coverage:** 48.1% → 100% branches
 
-**File:** `…/pdf/PDFParser_extractSignatures_7_0_Test.java`
-**Baseline:** 32.7% instructions / 60.0% branches — signed-field block (lines 413–427) never executed
+| Test | Configuration | Expected |
+|:---|:---|:---|
+| `testImageStrategyRenderPagesBeforeParse` | `RENDER_PAGES_BEFORE_PARSE` | `true` |
+| `testImageStrategyRenderPagesAtPageEnd` | `RENDER_PAGES_AT_PAGE_END` | `true` |
+| `testExtractIncrementalUpdateInfoTrue` | `extractIncrementalUpdateInfo = true` | `true` |
+| `testParseIncrementalUpdatesTrue` | `parseIncrementalUpdates = true` | `true` |
+| `testOcrStrategyNoOcr` | All flags off, `Strategy = NO_OCR` | `false` |
+| `testDefaultConfigShouldSpool` | All flags off, `Strategy = AUTO` | `true` |
 
-| Test | Scenario | Assertions | Rationale |
-|:---|:---|:---|:---|
-| `testExtractSignaturesEmpty` | `PDDocument` returns empty field list | `HAS_SIGNATURE_FIELDS` and `HAS_SIGNATURE` both absent | No fields → no metadata set |
-| `testExtractSignaturesNullSignature` | One unsigned field (`getSignature() == null`) | `HAS_SIGNATURE_FIELDS = "true"`, `HAS_SIGNATURE` absent | Exercises the `if (signature == null) continue;` branch that baseline tests always take |
-| `testExtractSignaturesValid` | One fully signed field with all metadata | `HAS_SIGNATURE = "true"`, `SIGNATURE_NAME`, `SIGNATURE_CONTACT_INFO`, `SIGNATURE_FILTER`, `SIGNATURE_LOCATION`, `SIGNATURE_REASON`, `SIGNATURE_DATE` all asserted | **Exercises the previously dead signed-field block**; kills all 6 living metadata-assignment mutants |
-
-> **Design note:** `PDDocument`, `PDSignatureField`, and `PDSignature` are mocked (PDFBox objects carry heavyweight filesystem state). Private method accessed via reflection.
-
----
-
-### `shouldSpool(PDFParserConfig)`
-
-**File:** `…/pdf/PDFParser_shouldSpool_8_0_Test.java`
-**Baseline:** 48.1% instructions / 30.0% branches — `RENDER_PAGES_*` and incremental-update branches never reached
-
-| Test | Configuration | Expected | Rationale |
-|:---|:---|:---|:---|
-| `testImageStrategyRenderPagesBeforeParse` | `IMAGE_STRATEGY = RENDER_PAGES_BEFORE_PARSE` | `true` | First unreached branch |
-| `testImageStrategyRenderPagesAtPageEnd` | `IMAGE_STRATEGY = RENDER_PAGES_AT_PAGE_END` | `true` | Second unreached branch |
-| `testExtractIncrementalUpdateInfoTrue` | `extractIncrementalUpdateInfo = true` | `true` | Third unreached branch |
-| `testParseIncrementalUpdatesTrue` | `parseIncrementalUpdates = true` | `true` | Fourth unreached branch |
-| `testOcrStrategyNoOcr` | All flags off, `OcrConfig.Strategy = NO_OCR` | `false` | Negative case — ensures a mutant returning always-`true` is killed |
-| `testDefaultConfigShouldSpool` | All flags off, `OcrConfig.Strategy = AUTO` | `true` | Default OCR mode requires a seekable stream → spooling |
-
-> **Design note:** `shouldSpool` is private; accessed via `getDeclaredMethod` + `setAccessible(true)`, wrapped in a shared `invokeShouldSpool()` helper. Tests assert the return value directly; propagation into `PDFParser.parse()` is not verified (known limitation).
+Private method accessed via `getDeclaredMethod` + `setAccessible(true)`, wrapped in a shared `invokeShouldSpool()` helper.
 
 ---
 
-## Analysis: Strengths & Weaknesses per Test Class
+## Analysis: Strengths & Weaknesses
 
 ### Oracle Strength Summary
 
-| Test Class | Oracle Strength | Mutation Kill Effectiveness |
+| Test Class | Oracle Strength | Mutation Effectiveness |
 |:---|:---|:---|
 | `PDFParser_extractSignatures_7_0_Test` | **Strong** — exact field-by-field assertions | **High** — kills all 6 metadata-assignment mutants |
-| `StringUtilsTest` | **Strong** — exact string equality assertions | **High** — kills boundary mutants across all branches |
+| `StringUtilsTest` | **Strong** — exact string equality | **High** — kills boundary mutants across all branches |
 | `PDFParser_shouldSpool_8_0_Test` | **Moderate** — correct return-value assertions, no propagation | **Moderate** — kills branch mutants, not call-site mutants |
 | `PDFParser_renderPDF_10_0_Test` | **Weak** — `assertNotNull` only | **Low** — kills only null-return mutants |
 
----
+### Per-Class Notes
 
-### `StringUtilsTest`
+**`StringUtilsTest` ✅** PAD_LIMIT temporarily lowered to 5 to force overflow branches without 10 000-char strings. All assertions use exact Javadoc-derived values.  
+⚠️ `repeat(char, int)` under-tested; `switch-case 1` in `repeat(String, int)` is structurally unreachable dead code in `StringUtils` itself; `isBlank`/`joinWith` remain at 0%.
 
-**✅ Strengths**
+**`PDFParser_extractSignatures_7_0_Test` ✅** Three tests cleanly partition the branch space; strong oracle kills all living mutants.  
+⚠️ `SIGNATURE_DATE` only asserted with `assertNotNull` (format not validated); no multi-field loop test.
 
-- **Branch awareness.** Every structurally significant branch in `leftPad(String, int, String)` is targeted by a dedicated test, corresponding directly to a mutation kill (null guard, empty pad, no-padding-needed, single-char delegate, exact fit, partial pad, cyclic fill).
-- **PAD_LIMIT boundary engineering.** Tests for `leftPad(char)` and `repeat(String)` temporarily lower `StringUtils.PAD_LIMIT` to 5 to force the overflow branch without constructing a 10 001-character string. This is a non-trivial, smart design choice.
-- **CharSequence polymorphism.** `testIsEmptyWithStringBuilder` validates the contract across `CharSequence` implementations, not just `String`.
-- **Oracle precision.** All assertions use exact expected values derived from the source Javadoc examples — no vacuous or over-permissive assertions.
+**`PDFParser_shouldSpool_8_0_Test` ✅** All four previously unreached branches covered; negative case (`false`) prevents always-true mutant survival.  
+⚠️ Propagation not validated: whether `PDFParser.parse()` actually spools when `shouldSpool` returns `true` is untested (RIP propagation gap).
 
-**⚠️ Weaknesses & Gaps**
+**`PDFParser_renderPDF_10_0_Test` ✅** Correct reflection pattern; crosses 0% coverage threshold.  
+⚠️ `assertNotNull(results)` is vacuous — `mockResults` is non-null by definition. Fix: use `assertSame` + `verify(mockRenderer).render(...)`.
 
-- **`repeat(char, int)` is under-tested.** Only 2 tests cover it. The reverse-fill loop (`for (int i = repeat - 1; i >= 0; i--)`) is never verified for off-by-one behaviour on multi-character strings.
-- **`switch-case 1` in `repeat(String, int)` is dead code.** The residual 2% uncovered is structurally unreachable: the `inputLength == 1 && repeat <= PAD_LIMIT` fast-path above the switch handles all length-1 cases first. This reveals a **latent dead-code bug in `StringUtils` itself**.
-- **`isBlank` and `joinWith` remain at 0%.** Not targeted by this generation run; `joinWith` contains a non-trivial `if (lines.size() == 0)` path worth testing.
-
----
-
-### `PDFParser_extractSignatures_7_0_Test`
-
-**✅ Strengths**
-
-- **Directly closes the identified gap.** The three tests cleanly partition the input space into: (1) empty field list, (2) unsigned field (`signature == null`), (3) fully signed field — mirroring the exact branch structure of the method.
-- **Strong oracle.** `testExtractSignaturesValid` asserts all six metadata keys individually, killing every living metadata-assignment mutant identified in the justification report.
-- **Correct use of mocking.** PDFBox objects (`PDDocument`, `PDSignatureField`, `PDSignature`) are heavyweight; mocking them avoids filesystem dependencies while keeping the test fast and deterministic.
-
-**⚠️ Weaknesses & Gaps**
-
-- **`SIGNATURE_DATE` weakly asserted.** `assertNotNull(metadata.get(SIGNATURE_DATE))` does not validate date format or value. A mutant using a wrong date serializer would survive.
-- **No multi-field test.** The method loops over all signature fields; only single-field scenarios are tested. A mutant breaking the loop after the first field would not be caught.
-- **Fragile negative assertion.** `assertNull(metadata.get(PDF.HAS_SIGNATURE_FIELDS))` assumes key absence rather than `"false"`; a refactoring that sets an explicit false would break this test incorrectly.
-
----
-
-### `PDFParser_shouldSpool_8_0_Test`
-
-**✅ Strengths**
-
-- **All four previously-unreached branches tested** (`RENDER_PAGES_BEFORE_PARSE`, `RENDER_PAGES_AT_PAGE_END`, `extractIncrementalUpdateInfo = true`, `parseIncrementalUpdates = true`).
-- **Negative case included.** `testOcrStrategyNoOcr` asserts `false` — without this, a mutant that always returns `true` would survive every `assertTrue`.
-- **Correct reflection pattern.** `getDeclaredMethod` + `setAccessible(true)` wrapped in a private helper avoids production code refactoring.
-
-**⚠️ Weaknesses & Gaps**
-
-- **Propagation not validated — the core RIP weakness is only half-solved.** The tests fix *reachability* and *infection* (direct return value asserted), but do not verify *propagation*: whether `PDFParser.parse()` actually spools the stream to disk when `shouldSpool` returns `true`. Mutants at the call site survive.
-- **`AUTO` OCR assertion unexplained.** The reason `Strategy.AUTO` triggers spooling (OCR requires a seekable stream) is not documented in the test, making it opaque to future maintainers.
-- **Other `OcrConfig.Strategy` values untested.** `OCR_ONLY`, `OCR_AND_EXTRACT` branches are not covered.
-
----
-
-### `PDFParser_renderPDF_10_0_Test`
-
-**✅ Strengths**
-
-- **Correct architectural approach.** Mocks `Renderer`, wires it via `setRenderer()`, invokes the private method via reflection — the right pattern for an isolated unit test of an unreachable private method.
-- **Addresses zero-reachability.** Simply invoking the method body crosses the 0% threshold; instruction coverage for this method reaches 100%.
-
-**⚠️ Weaknesses & Gaps**
-
-- **Oracle is nearly vacuous: `assertNotNull(results)`.** `mockResults` is non-null by definition. The assertion passes regardless of what `renderPDF` actually does with its arguments. **This test kills zero realistic mutants.** Concrete examples of surviving mutants:
-  - Returning a different `RenderResults` object → still `assertNotNull`
-  - Swapping the `PageRangeRequest` argument → `when(...)` stub still returns `mockResults`
-  - Ignoring the renderer and returning `new RenderResults()` → still `assertNotNull`
-  
-  The correct fix is `assertSame(mockResults, results)` combined with `verify(mockRenderer).render(tstream, any(Metadata.class), eq(parseContext), eq(PageRangeRequest.RENDER_ALL))`.
-- **Only the happy path.** No exception scenarios (renderer throws, invalid stream) are tested.
-- **`TikaInputStream.get(Paths.get("."))` passes a directory.** Harmless with a mocked renderer, but would silently fail if the test were ever switched to a real one.
-
----
-
-### Cross-Cutting: What ChatUniTest Does Well vs. Poorly
+### Cross-Cutting: ChatUniTest Capabilities
 
 | Capability | Assessment |
 |:---|:---|
-| Structural branch coverage for flag-driven methods | **Good** — reliably finds and tests every conditional path |
-| Mocking infrastructure | **Good** — correctly identifies heavyweight collaborators and writes minimal stubs |
+| Structural branch coverage | **Good** — reliably finds and tests every conditional path |
+| Mocking infrastructure | **Good** — correctly identifies heavyweight collaborators |
 | Reflection for private methods | **Good** — generates correct `getDeclaredMethod` / `setAccessible` patterns |
-| Boundary value engineering (e.g., `PAD_LIMIT`) | **Good** — non-trivial insight into package-private state |
+| Boundary value engineering | **Good** — non-trivial insight into package-private state |
 | Propagation oracles | **Poor** — asserts direct return values, never downstream effects |
-| Multi-iteration / loop body testing | **Poor** — single-element scenarios only |
-| Exception / error path coverage | **Poor** — no generated test exercises throws or invalid inputs |
+| Loop body / multi-iteration testing | **Poor** — single-element scenarios only |
+| Exception / error paths | **Poor** — no generated test exercises throws or invalid inputs |
 | Deep semantic oracles | **Poor** — defaults to `assertNotNull` when exact value cannot be inferred |
 
 ---
 
-## Tool Limitations & Early Skill Mitigation
+## ChatUniTest Limitations
 
-In practice, tests generated by **ChatUniTest** cannot be committed directly to Apache Tika without manual intervention. The generator operates with limited awareness of repository-specific build configurations and code style conventions:
-- **Style Violations (Wildcard Imports):** Consistently introduces star imports (`import static org.junit.jupiter.api.Assertions.*`), which fail Tika's strict Checkstyle build (`AvoidStarImportCheck`).
-- **Missing Module Dependencies:** Frequently injects Mockito mocks without verifying whether `mockito-core` is declared in the target submodule's `pom.xml`.
-- **Build Artifact Pollution:** Aborted generation attempts leave orphan `.class` files in `target/test-classes/`, resulting in false test failures during subsequent `mvn test` runs.
-- **Oracle Deficiencies:** Tends to generate superficial assertions (`assertNotNull`) or hallucinated version/return values requiring manual domain correction.
+ChatUniTest generates tests in isolation from repository build standards, requiring systematic manual post-processing before integration into Apache Tika:
 
+- **Wildcard imports:** Consistently injects star imports (e.g., `import static org.junit.jupiter.api.Assertions.*`), failing Checkstyle's `AvoidStarImportCheck`.
+- **Missing dependencies:** Generates Mockito-based tests without verifying `mockito-core` is declared in the submodule POM.
+- **Orphan binaries:** Aborted generation candidates leave `.class` files in `target/test-classes/`, causing spurious Surefire failures.
+- **Fragile assertions:** Defaults to `assertNotNull` or hallucinates incorrect expected values (e.g., wrong PDF version strings).
+
+To address these recurring issues, the `.agents/skills/chatunitest-generator/SKILL.md` runbook was established early, codifying the mandatory post-processing steps (import cleanup, orphan deletion, SPI regeneration, Checkstyle validation).
