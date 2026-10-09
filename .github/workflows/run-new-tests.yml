@@ -1,0 +1,71 @@
+name: Run New Tests
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ '**' ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Unit Tests & Mutation Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Verify Checkstyle compliance
+        run: |
+          mvn checkstyle:check -B \
+            -pl tika-core,tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module
+
+      - name: Compile required modules
+        run: |
+          mvn test-compile -B -am \
+            -pl tika-core,tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module
+
+      - name: Run new unit tests (ChatUniTest & Manual)
+        run: |
+          mvn test -B \
+            -pl tika-core,tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module \
+            -Dtest='StringUtilsTest,PDFParser_extractSignatures_7_0_Test,PDFParser_renderPDF_10_0_Test,PDFParser_shouldSpool_8_0_Test'
+
+      - name: Run PITest Mutation Analysis on PDFParser
+        run: |
+          mvn org.pitest:pitest-maven:mutationCoverage -B \
+            -pl tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module \
+            -DtargetClasses=org.apache.tika.parser.pdf.PDFParser \
+            -DtargetTests='org.apache.tika.parser.pdf.PDFParser_*_Test' \
+            -DtargetMethods=renderPDF,extractSignatures,shouldSpool
+
+      - name: Run PITest Mutation Analysis on StringUtils
+        run: |
+          mvn org.pitest:pitest-maven:mutationCoverage -B \
+            -pl tika-core \
+            -DtargetClasses=org.apache.tika.utils.StringUtils \
+            -DtargetTests=org.apache.tika.utils.StringUtilsTest
+
+      - name: Upload PDFParser PITest Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pit-report-pdfparser
+          path: tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module/target/pit-reports/
+          if-no-files-found: ignore
+
+      - name: Upload StringUtils PITest Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pit-report-stringutils
+          path: tika-core/target/pit-reports/
+          if-no-files-found: ignore
