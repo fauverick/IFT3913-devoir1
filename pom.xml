@@ -67,6 +67,54 @@
           </inputExcludes>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>io.github.zju-aces-ise</groupId>
+        <artifactId>chatunitest-maven-plugin</artifactId>
+        <version>2.1.1</version>
+        <configuration>
+          <url>http://127.0.0.1:8085/chat/completions</url>
+          <model>gpt-4o-mini</model>
+          <apiKeys>
+            <openaiKey>${env.GEMINI_API_KEY}</openaiKey>
+          </apiKeys>
+          <maxRounds>3</maxRounds>
+          <testNumber>3</testNumber>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.pitest</groupId>
+        <artifactId>pitest-maven</artifactId>
+        <version>1.17.1</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-junit5-plugin</artifactId>
+            <version>1.2.1</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <targetClasses>
+            <param>org.apache.tika.utils.StringUtils</param>
+            <param>org.apache.tika.parser.pdf.PDFParser</param>
+          </targetClasses>
+          <targetTests>
+            <param>org.apache.tika.utils.StringUtils*Test</param>
+            <param>org.apache.tika.parser.pdf.PDFParser*Test</param>
+          </targetTests>
+          <outputFormats>
+            <outputFormat>HTML</outputFormat>
+            <outputFormat>XML</outputFormat>
+            <outputFormat>CSV</outputFormat>
+          </outputFormats>
+          <mutators>
+            <mutator>STRONGER</mutator>
+          </mutators>
+          <timestampedReports>false</timestampedReports>
+          <failWhenNoMutations>false</failWhenNoMutations>
+          <argLine>-Xmx2g -Djava.awt.headless=true</argLine>
+          <useSurefireEnvironment>false</useSurefireEnvironment>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <description>The Apache Tika™ toolkit detects and extracts metadata and structured text content from various documents

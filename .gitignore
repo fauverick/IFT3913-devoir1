@@ -29,3 +29,6 @@ __pycache__/
 bridge.py
 .agents
 .vscode
+
+TASK.md
+AGENT.md
