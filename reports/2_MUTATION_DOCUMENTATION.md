@@ -21,6 +21,8 @@ PITest was integrated via Maven in `tika-parent/pom.xml` and the root `pom.xml` 
 | **`tika-core`** | `StringUtils` | **0%** *(0 / 91 in target methods)* | **68%** (71 / 104) | **20** |
 | **`tika-parser-pdf`** | `PDFParser` | **0%** *(0 / 23 in target methods)* | **73.9%** (17 / 23) | **6** |
 
+*(See [3_MUTATION_TEST_ADDITION.md](file:///Users/fauverick/Documents/UdeM%20-%20Informatique/Automne%202026/IFT%203913/tika/reports/3_MUTATION_TEST_ADDITION.md) for detailed descriptions of each manual test added to kill the surviving mutants).*
+
 ---
 
 ## 3. Module: `tika-core` — `StringUtils`

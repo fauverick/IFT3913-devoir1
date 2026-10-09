@@ -19,7 +19,12 @@ package org.apache.tika.parser.pdf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
@@ -92,5 +97,25 @@ public class PDFParser_extractSignatures_7_0_Test {
         assertEquals("Wonderland", metadata.get(TikaCoreProperties.SIGNATURE_LOCATION));
         assertEquals("Approval", metadata.get(TikaCoreProperties.SIGNATURE_REASON));
         assertNotNull(metadata.get(TikaCoreProperties.SIGNATURE_DATE));
+    }
+
+    @Test
+    public void testExtractSignaturesNullDate() throws Exception {
+        PDFParser parser = new PDFParser();
+        PDDocument doc = mock(PDDocument.class);
+        Metadata metadata = spy(new Metadata());
+        PDSignatureField field = mock(PDSignatureField.class);
+        PDSignature signature = mock(PDSignature.class);
+        when(signature.getName()).thenReturn("Test Signer");
+        when(signature.getSignDate()).thenReturn(null);
+        when(field.getSignature()).thenReturn(signature);
+        when(doc.getSignatureFields()).thenReturn(Collections.singletonList(field));
+        invokeExtractSignatures(parser, doc, metadata);
+        assertEquals("true", metadata.get(PDF.HAS_SIGNATURE_FIELDS));
+        assertEquals("true", metadata.get(TikaCoreProperties.HAS_SIGNATURE));
+        assertEquals("Test Signer", metadata.get(TikaCoreProperties.SIGNATURE_NAME));
+        assertNull(metadata.get(TikaCoreProperties.SIGNATURE_DATE));
+        verify(metadata, never()).add(eq(TikaCoreProperties.SIGNATURE_DATE),
+                nullable(Calendar.class));
     }
 }

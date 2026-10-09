@@ -52,5 +52,11 @@ public class PDFParser_renderPDF_10_0_Test {
         method.setAccessible(true);
         RenderResults results = (RenderResults) method.invoke(parser, tstream, parseContext, localConfig);
         assertNotNull(results);
+        org.junit.jupiter.api.Assertions.assertSame(mockResults, results);
+        org.mockito.ArgumentCaptor<Metadata> metadataCaptor = org.mockito.ArgumentCaptor.forClass(Metadata.class);
+        Mockito.verify(mockRenderer).render(any(TikaInputStream.class), metadataCaptor.capture(), any(ParseContext.class),
+                eq(PageRangeRequest.RENDER_ALL));
+        org.junit.jupiter.api.Assertions.assertEquals("application/pdf",
+                metadataCaptor.getValue().get(org.apache.tika.metadata.TikaCoreProperties.TYPE));
     }
 }

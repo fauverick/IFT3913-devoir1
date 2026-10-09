@@ -46,6 +46,9 @@ public class PDFParser_shouldSpool_8_0_Test {
         config.setImageStrategy(PDFParserConfig.IMAGE_STRATEGY.RENDER_PAGES_BEFORE_PARSE);
         config.setExtractIncrementalUpdateInfo(false);
         config.setParseIncrementalUpdates(false);
+        OcrConfig ocrConfig = new OcrConfig();
+        ocrConfig.setStrategy(OcrConfig.Strategy.NO_OCR);
+        config.setOcr(ocrConfig);
         assertTrue(invokeShouldSpool(config));
     }
 
@@ -55,6 +58,9 @@ public class PDFParser_shouldSpool_8_0_Test {
         config.setImageStrategy(PDFParserConfig.IMAGE_STRATEGY.RENDER_PAGES_AT_PAGE_END);
         config.setExtractIncrementalUpdateInfo(false);
         config.setParseIncrementalUpdates(false);
+        OcrConfig ocrConfig = new OcrConfig();
+        ocrConfig.setStrategy(OcrConfig.Strategy.NO_OCR);
+        config.setOcr(ocrConfig);
         assertTrue(invokeShouldSpool(config));
     }
 
@@ -64,6 +70,9 @@ public class PDFParser_shouldSpool_8_0_Test {
         config.setImageStrategy(PDFParserConfig.IMAGE_STRATEGY.NONE);
         config.setExtractIncrementalUpdateInfo(true);
         config.setParseIncrementalUpdates(false);
+        OcrConfig ocrConfig = new OcrConfig();
+        ocrConfig.setStrategy(OcrConfig.Strategy.NO_OCR);
+        config.setOcr(ocrConfig);
         assertTrue(invokeShouldSpool(config));
     }
 
@@ -73,6 +82,9 @@ public class PDFParser_shouldSpool_8_0_Test {
         config.setImageStrategy(PDFParserConfig.IMAGE_STRATEGY.NONE);
         config.setExtractIncrementalUpdateInfo(false);
         config.setParseIncrementalUpdates(true);
+        OcrConfig ocrConfig = new OcrConfig();
+        ocrConfig.setStrategy(OcrConfig.Strategy.NO_OCR);
+        config.setOcr(ocrConfig);
         assertTrue(invokeShouldSpool(config));
     }
 
