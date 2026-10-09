@@ -1,6 +1,13 @@
 # IFT 3913 — Devoir 1
 ## Tests unitaires automatisés avec ChatUniTest & Analyse de mutation avec PITest
 
+### Équipe
+
+| Membre | Matricule |
+| :--- | :---: |
+| **Hung Nguyen** | 20246446 |
+| **Olivier Larue** | 20269986 |
+
 Ce rapport consolide l'ensemble des travaux réalisés pour la **Tâche 2** sur le projet [Apache Tika](https://github.com/apache/tika). Il couvre la justification des classes cibles, l'intégration de **ChatUniTest** avec un modèle de langage (LLM), l'analyse critique des tests générés, l'analyse de mutation avec **PITest**, l'ajout de tests manuels ciblés pour éliminer les mutants survivants, ainsi que la validation automatisée via **GitHub Actions**.
 
 ---
@@ -38,9 +45,11 @@ Ces classes disposaient déjà de tests dans le projet, mais ne couvraient pas 1
 
 ### 1.2. Couverture de code initiale (JaCoCo Baseline)
 
-| `StringUtils` (15% couverture globale) | `PDFParser` (81% couverture globale) |
-| :---: | :---: |
-| ![StringUtils Baseline Coverage](media/StringUtils_before.png) | ![PDFParser Baseline Coverage](media/PDFParser_before.png) |
+#### `StringUtils` (15% de couverture globale initiale)
+![StringUtils Baseline Coverage](media/StringUtils_before.png)
+
+#### `PDFParser` (81% de couverture globale initiale)
+![PDFParser Baseline Coverage](media/PDFParser_before.png)
 
 ---
 
@@ -124,9 +133,11 @@ Les tests générés par ChatUniTest **ne compilaient et ne s'exécutaient pas d
 | **`StringUtils`** | 15% inst / 15% branches | **97%** inst / **98%** branches *(100% sur méthodes cibles)* | **+82%** |
 | **`PDFParser`** | 81% inst / 67% branches | **89%** inst / **74%** branches *(100% inst sur méthodes cibles)* | **+8%** global *(+50% cibles)* |
 
-| `StringUtils` (Après génération : 97%) | `PDFParser` (Après génération : 89%) |
-| :---: | :---: |
-| ![StringUtils After Coverage](media/StringUtils_after.png) | ![PDFParser After Coverage](media/PDFParser_after.png) |
+#### `StringUtils` (Après génération : 97% de couverture)
+![StringUtils After Coverage](media/StringUtils_after.png)
+
+#### `PDFParser` (Après génération : 89% de couverture)
+![PDFParser After Coverage](media/PDFParser_after.png)
 
 ---
 
