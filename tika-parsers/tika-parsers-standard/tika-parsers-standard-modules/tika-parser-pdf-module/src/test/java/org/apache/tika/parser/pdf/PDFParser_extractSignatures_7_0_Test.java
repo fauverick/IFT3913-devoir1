@@ -30,6 +30,8 @@ import static org.mockito.Mockito.when;
 import java.lang.reflect.Method;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
@@ -79,7 +81,7 @@ public class PDFParser_extractSignatures_7_0_Test {
         Metadata metadata = new Metadata();
         PDSignatureField field = mock(PDSignatureField.class);
         PDSignature signature = mock(PDSignature.class);
-        Calendar cal = Calendar.getInstance();
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.ROOT);
         when(signature.getName()).thenReturn("Test Signer");
         when(signature.getSignDate()).thenReturn(cal);
         when(signature.getContactInfo()).thenReturn("test@example.com");

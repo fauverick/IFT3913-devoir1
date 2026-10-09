@@ -90,6 +90,5 @@ This document details the unit tests added or enhanced manually to address survi
 - **Test Intent:** Verify that repeating a string with `repeat = 1` or an empty string returns the input instance directly without copying into buffers.
 - **Test Data Motivation:** `new String("abc")` with `repeat = 1`, and `new String("")` with `repeat = 5`.
 - **Oracle Explanation:** `assertSame(str, StringUtils.repeat(str, 1))` and `assertSame(empty, StringUtils.repeat(empty, 5))`. Mutating either condition bypasses the early return and routes to switch loops, producing new String objects that fail `assertSame`.
-
 ---
 

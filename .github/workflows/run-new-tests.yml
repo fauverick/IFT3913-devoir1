@@ -28,9 +28,9 @@ jobs:
           mvn checkstyle:check -B \
             -pl tika-core,tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module
 
-      - name: Compile required modules
+      - name: Install reactor dependencies
         run: |
-          mvn test-compile -B -am \
+          mvn install -B -DskipTests -am \
             -pl tika-core,tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module
 
       - name: Run new unit tests (ChatUniTest & Manual)
