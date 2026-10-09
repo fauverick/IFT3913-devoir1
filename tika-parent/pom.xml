@@ -311,6 +311,8 @@
     <rat.version>0.18</rat.version>
     <scm.version>2.2.1</scm.version>
     <checkstyle.configLocation>${maven.multiModuleProjectDirectory}/tika-parent/checkstyle.xml</checkstyle.configLocation>
+    <pitest.version>1.17.1</pitest.version>
+    <pitest.junit5.version>1.2.3</pitest.junit5.version>
     <spotless.goal>apply</spotless.goal>
     <spotless.header.file>${maven.multiModuleProjectDirectory}/tika-parent/license-header.txt</spotless.header.file>
     <!-- dependency versions -->
@@ -1467,7 +1469,7 @@
         <configuration>
           <!-- for manual testing of i18n, try for example: -Duser.language=zh -Duser.region=CN or
           -Duser.language=de -Duser.country=DE -->
-          <argLine>-Xmx4g -Djava.awt.headless=true @{surefireArgLine}</argLine>
+          <argLine>-Xmx4g -Djava.awt.headless=true ${surefireArgLine}</argLine>
         </configuration>
       </plugin>
       <plugin>
@@ -1663,6 +1665,46 @@
           </apiKeys>
           <maxRounds>3</maxRounds>
           <testNumber>3</testNumber>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.pitest</groupId>
+        <artifactId>pitest-maven</artifactId>
+        <version>${pitest.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-junit5-plugin</artifactId>
+            <version>${pitest.junit5.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <version>${junit6.version}</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <targetClasses>
+            <param>org.apache.tika.utils.StringUtils</param>
+            <param>org.apache.tika.parser.pdf.PDFParser</param>
+          </targetClasses>
+          <targetTests>
+            <param>org.apache.tika.utils.StringUtils*Test</param>
+            <param>org.apache.tika.parser.pdf.PDFParser*Test</param>
+          </targetTests>
+          <outputFormats>
+            <outputFormat>HTML</outputFormat>
+            <outputFormat>XML</outputFormat>
+            <outputFormat>CSV</outputFormat>
+          </outputFormats>
+          <mutators>
+            <mutator>STRONGER</mutator>
+          </mutators>
+          <timestampedReports>false</timestampedReports>
+          <failWhenNoMutations>false</failWhenNoMutations>
+          <argLine>-Xmx2g -Djava.awt.headless=true</argLine>
+          <useSurefireEnvironment>false</useSurefireEnvironment>
+          <verbose>true</verbose>
         </configuration>
       </plugin>
     </plugins>
