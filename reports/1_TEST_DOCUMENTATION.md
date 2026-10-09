@@ -7,7 +7,13 @@ Tests cover six methods across two modules, generated via **ChatUniTest** and ma
 ## Module: `tika-core` — `StringUtils`
 
 **File:** `tika-core/src/test/java/org/apache/tika/utils/StringUtilsTest.java`  
-**Coverage:** 0% → 97% instructions / 98% branches
+**Coverage:** 15% → 97% instructions / 15% → 98% branches (target methods: 0% → 100%)
+
+### Code Coverage Comparison (JaCoCo)
+
+| Baseline (Before) | Post-Generation (After) |
+| :---: | :---: |
+| ![StringUtils Before](../media/StringUtils_before.png) | ![StringUtils After](../media/StringUtils_after.png) |
 
 ### `isEmpty(CharSequence cs)` — 5 tests
 
@@ -39,6 +45,16 @@ Null input, zero/negative repeat, identity fast-path (`repeat == 1` or `inputLen
 
 ## Module: `tika-parser-pdf-module` — `PDFParser`
 
+**Coverage:** 81% → 89% instructions / 67% → 74% branches across `PDFParser` (target methods: `renderPDF` 0% → 100%, `shouldSpool` 48.1% → 100%, `extractSignatures` 32.7% → 100% instructions / 60% → 90% branches)
+
+### Code Coverage Comparison (JaCoCo)
+
+#### Baseline Coverage (Before: 81%)
+![PDFParser Before](../media/PDFParser_before.png)
+
+#### Post-Generation Coverage (After: 89%)
+![PDFParser After](../media/PDFParser_after.png)
+
 ### `renderPDF(TikaInputStream, ParseContext, PDFParserConfig)` — 1 test
 
 **File:** `…/PDFParser_renderPDF_10_0_Test.java` | **Coverage:** 0% → 100%
@@ -47,7 +63,7 @@ Null input, zero/negative repeat, identity fast-path (`repeat == 1` or `inputLen
 
 ### `extractSignatures(PDDocument, Metadata)` — 3 tests
 
-**File:** `…/PDFParser_extractSignatures_7_0_Test.java` | **Coverage:** 32.7% → ~90% instructions
+**File:** `…/PDFParser_extractSignatures_7_0_Test.java` | **Coverage:** 32.7% → 100% instructions / 60% → 90% branches
 
 | Test | Scenario | Assertions |
 |:---|:---|:---|
@@ -59,7 +75,7 @@ Null input, zero/negative repeat, identity fast-path (`repeat == 1` or `inputLen
 
 ### `shouldSpool(PDFParserConfig)` — 6 tests
 
-**File:** `…/PDFParser_shouldSpool_8_0_Test.java` | **Coverage:** 48.1% → 100% branches
+**File:** `…/PDFParser_shouldSpool_8_0_Test.java` | **Coverage:** 48.1% → 100% instructions / 30% → 100% branches
 
 | Test | Configuration | Expected |
 |:---|:---|:---|

@@ -17,7 +17,11 @@ This report documents why the selected methods in `tika-core` and `tika-parser-p
 
 ---
 
-## 2. Module: `tika-core` -> `StringUtils`
+## 2. Module: `tika-core` -> Class: `StringUtils` 
+
+This class originally has 15% code coverage:
+
+![StringUtils Baseline Code Coverage](../media/StringUtils_before.png)
 
 No unit test suite exists for `StringUtils` in `tika-core` (`StringUtilsTest` is absent in `tika-core/src/test/java`). Across the entire module test suite, the class is only referenced to access the constant `StringUtils.EMPTY` in `FilenameUtilsTest`.
 
@@ -31,7 +35,11 @@ No unit test suite exists for `StringUtils` in `tika-core` (`StringUtilsTest` is
 
 ---
 
-## 3. Module: `tika-parser-pdf-module` -> `PDFParser`
+## 3. Module: `tika-parser-pdf-module` -> Class: `PDFParser`
+
+This class originally has 81% code coverage:
+
+![PDFParser Baseline Code Coverage](../media/PDFParser_before.png)
 
 ### 3.1. `renderPDF(TikaInputStream, ParseContext, PDFParserConfig)`
 * **Coverage:** **0.0%** (0/21 instructions, 0/3 lines).
