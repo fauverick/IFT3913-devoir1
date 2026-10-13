@@ -197,7 +197,7 @@ Les scores portent uniquement sur les mutants des **méthodes ciblées**
 
 | Module | Classe cible | Score initial (tests originaux) | Score avec ChatUniTest | Mutants survivants |
 | :--- | :--- | :---: | :---: | :---: |
-| **`tika-core`** | `StringUtils` | **0%** (0 / 86, tous non couverts) | **76.7%** (66 / 86) | **20** |
+| **`tika-core`** | `StringUtils` | **0%** (0 / 91, tous non couverts) | **78.0%** (71 / 91) | **20** |
 | **`tika-parser-pdf`** | `PDFParser` | **12.5%** (4 / 32 ; 10 survivants, 18 non couverts) | **81.2%** (26 / 32) | **6** |
 
 - **Tests originaux de `StringUtils`** : tous les tests de `tika-core` (aucun fichier `StringUtilsTest` n'existait). Ils ne touchent que `isBlank` (5 mutants tués par `FilenameUtilsTest` et `InputStreamDigesterTest`), jamais les méthodes ciblées.
@@ -266,11 +266,10 @@ Pour tuer les mutants survivants, des tests manuels ont été développés.
 | Module | Classe cible | Score initial | Score ChatUniTest | Score final après ajouts manuels | Bilan |
 | :--- | :--- | :---: | :---: | :---: | :--- |
 | **`tika-parser-pdf`** | `PDFParser` | **12.5%** (4 / 32) | 81.2% (26 / 32) | **100%** (32 / 32) | **0 mutant survivant** |
-| **`tika-core`** | `StringUtils` | **0%** (0 / 86) | 76.7% (66 / 86) | **84.9%** (73 / 86) | **13 survivants** |
+| **`tika-core`** | `StringUtils` | **0%** (0 / 91) | 78.0% (71 / 91) | **86.8%** (79 / 91) | **12 survivants** |
 
-Les tests manuels sont dans des classes séparées des tests générés : `StringUtilsManualTest` et `PDFParserManualTest`. Pour `StringUtils`, ils tuent 7 mutants de plus (lignes 80, 107, 139 et 180). Les 13 survivants restants :
-- **Lignes 83, 87, 89, 183** (11 mutants) : raccourcis de performance. Le code muté produit une chaîne égale et nouvellement allouée dans les deux cas, donc ces mutants sont équivalents.
-- **Ligne 176** (`repeat <= 0` → `< 0`) : le test 10 ne le tue pas. Avec `repeat = 0`, le code muté renvoie `new StringBuilder().toString()`, et un `StringBuilder` vide renvoie `""`, qui est la même instance que `StringUtils.EMPTY`. Le mutant est donc équivalent.
+Les tests manuels sont dans des classes séparées des tests générés : `StringUtilsManualTest` et `PDFParserManualTest`. Pour `StringUtils`, ils tuent 8 mutants de plus (lignes 80, 107, 139, 176 et 180). Les 12 survivants restants :
+- **Lignes 83, 87, 89, 183** (10 mutants) : raccourcis de performance. Le code muté produit une chaîne égale et nouvellement allouée dans les deux cas, donc ces mutants sont équivalents.
 - **Ligne 110** (`pads > PAD_LIMIT`, 2 mutants) : le mutant `>` → `>=` **n'est pas équivalent**. Avec `pads == 8192`, il provoque une récursion infinie entre les deux surcharges de `leftPad` (`StackOverflowError`). Il pourrait être tué par un test comme `leftPad("", 8192, 'x')`.
 
 ---
@@ -334,8 +333,7 @@ Les tests manuels sont dans des classes séparées des tests générés : `Strin
 - **Mutant ciblé :** Ligne 176 (`ConditionalsBoundaryMutator` transformant `repeat <= 0` en `< 0`).
 - **Intention du test :** Vérifier que répéter une chaîne 0 fois renvoie immédiatement `StringUtils.EMPTY` sans créer de `StringBuilder`.
 - **Motivation des données :** Chaîne `"abc"` avec borne `repeat = 0`.
-- **Explication de l'oracle :** `assertSame(StringUtils.EMPTY, StringUtils.repeat("abc", 0))`.
-- **Résultat PITest :** le mutant de la ligne 176 **survit**. Le chemin muté renvoie `new StringBuilder().toString()`, et sur le JDK utilisé, un `StringBuilder` vide renvoie le littéral `""`, c'est-à-dire la même instance que `StringUtils.EMPTY` (voir section 6.1).
+- **Explication de l'oracle :** `assertSame(StringUtils.EMPTY, StringUtils.repeat("abc", 0))`. Le mutant renvoie `new StringBuilder().toString()`, une nouvelle chaîne vide qui n'est pas la constante `StringUtils.EMPTY`, et échoue sur `assertSame`.
 
 #### Test 11 : `testRepeatStringOneOrEmptyInput`
 - **Classe :** `org.apache.tika.utils.StringUtilsManualTest`
