@@ -193,11 +193,16 @@ PITest 1.17.1 a été configuré dans Maven avec le groupe de mutateurs **`STRON
 ### 5.2. Comparaison des scores de mutation
 
 Les scores portent uniquement sur les mutants des **méthodes ciblées**
-(`isEmpty`, `leftPad`, `repeat` pour `StringUtils` ; `renderPDF`, `extractSignatures`, `shouldSpool` pour `PDFParser`). Un mutant `TIMED_OUT` est compté comme détecté.
+(`isEmpty`, `leftPad`, `repeat` pour `StringUtils` ; `renderPDF`, `extractSignatures`, `shouldSpool` pour `PDFParser`). 
+Un mutant `TIMED_OUT` est compté comme détecté.   
+Pour `StringUtils`, PITest génère 98 mutants sur toute la classe ; les 12 mutants de `isBlank` et `joinWith` (méthodes non ciblées) sont exclus, ce qui laisse 86 mutants.  
+Pour `PDFParser`, PITest génère 278 mutants sur toute la classe ; seuls les 32 mutants des trois méthodes ciblées sont retenus,
+d'où le 32 :(278 − 246 non couverts = 32).  
+Tous les scores ont été obtenus avec Java 21, comme dans la GitHub Action.
 
 | Module | Classe cible | Score initial (tests originaux) | Score avec ChatUniTest | Mutants survivants |
 | :--- | :--- | :---: | :---: | :---: |
-| **`tika-core`** | `StringUtils` | **0%** (0 / 91, tous non couverts) | **78.0%** (71 / 91) | **20** |
+| **`tika-core`** | `StringUtils` | **0%** (0 / 86, tous non couverts) | **76.7%** (66 / 86) | **20** |
 | **`tika-parser-pdf`** | `PDFParser` | **12.5%** (4 / 32 ; 10 survivants, 18 non couverts) | **81.2%** (26 / 32) | **6** |
 
 - **Tests originaux de `StringUtils`** : tous les tests de `tika-core` (aucun fichier `StringUtilsTest` n'existait). Ils ne touchent que `isBlank` (5 mutants tués par `FilenameUtilsTest` et `InputStreamDigesterTest`), jamais les méthodes ciblées.
@@ -238,12 +243,6 @@ $PDF = "tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-pa
   "-DtargetClasses=org.apache.tika.utils.StringUtils" `
   "-DtargetTests=org.apache.tika.utils.StringUtils*Test"
 
-# PDFParser : tests originaux
-.\mvnw.cmd test-compile org.pitest:pitest-maven:mutationCoverage -pl $PDF `
-  "-DtargetClasses=org.apache.tika.parser.pdf.PDFParser" `
-  "-DtargetTests=org.apache.tika.parser.pdf.*" `
-  "-DexcludedTestClasses=org.apache.tika.parser.pdf.PDFParser_*,org.apache.tika.parser.pdf.PDFParserManualTest"
-
 # PDFParser : tests ChatUniTest seulement
 .\mvnw.cmd test-compile org.pitest:pitest-maven:mutationCoverage -pl $PDF `
   "-DtargetClasses=org.apache.tika.parser.pdf.PDFParser" `
@@ -266,7 +265,7 @@ Pour tuer les mutants survivants, des tests manuels ont été développés.
 | Module | Classe cible | Score initial | Score ChatUniTest | Score final après ajouts manuels | Bilan |
 | :--- | :--- | :---: | :---: | :---: | :--- |
 | **`tika-parser-pdf`** | `PDFParser` | **12.5%** (4 / 32) | 81.2% (26 / 32) | **100%** (32 / 32) | **0 mutant survivant** |
-| **`tika-core`** | `StringUtils` | **0%** (0 / 91) | 78.0% (71 / 91) | **86.8%** (79 / 91) | **12 survivants** |
+| **`tika-core`** | `StringUtils` | **0%** (0 / 86) | 76.7% (66 / 86) | **86.0%** (74 / 86) | **12 survivants** |
 
 Les tests manuels sont dans des classes séparées des tests générés : `StringUtilsManualTest` et `PDFParserManualTest`. Pour `StringUtils`, ils tuent 8 mutants de plus (lignes 80, 107, 139, 176 et 180). Les 12 survivants restants :
 - **Lignes 83, 87, 89, 183** (10 mutants) : raccourcis de performance. Le code muté produit une chaîne égale et nouvellement allouée dans les deux cas, donc ces mutants sont équivalents.
