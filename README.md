@@ -8,54 +8,69 @@
 | **Hung Nguyen** | 20246446 |
 | **Olivier Larue** | 20269986 |
 
-Ce rapport consolide l'ensemble des travaux réalisés pour la **Tâche 2** sur le projet [Apache Tika](https://github.com/apache/tika). Il couvre la justification des classes cibles, l'intégration de **ChatUniTest** avec un modèle de langage (LLM), l'analyse critique des tests générés, l'analyse de mutation avec **PITest**, l'ajout de tests manuels ciblés pour éliminer les mutants survivants, ainsi que la validation automatisée via **GitHub Actions**.
+Travaux réalisés pour la **Tâche 2** sur le projet [Apache Tika](https://github.com/apache/tika). 
+Il couvre la justification des classes cibles, 
+l'intégration de **ChatUniTest** avec un LLM, 
+l'analyse des tests générés, l'analyse de mutation avec **PITest**, 
+l'ajout de tests manuels ciblés pour éliminer les mutants survivants,
+ainsi que l'intégration des nouveaux tests dans les **GitHub Actions**.
 
 ---
 
-## Sommaire / Table of Contents
+## Sommaire
 
-1. [Justification des classes et méthodes sélectionnées](#1-justification-des-classes-et-méthodes-sélectionnées-classes-à-tester) *(Classes à tester)*
-2. [Intégration de ChatUniTest dans le pipeline Maven](#2-intégration-de-chatunitest-dans-le-pipeline-maven-ia-et-test) *(IA et test)*
-3. [Tests générés par ChatUniTest](#3-tests-générés-par-chatunitest-tests-générés) *(Tests générés)*
-4. [Analyse et critique des tests générés](#4-analyse-et-critique-des-tests-générés-documentation-tests) *(Documentation tests)*
-5. [Analyse de mutation avec PITest](#5-analyse-de-mutation-avec-pitest-mutation--documentation-mutants) *(Mutation & Documentation mutants)*
-6. [Tests supplémentaires écrits à la main](#6-tests-supplémentaires-écrits-à-la-main-tests-supplémentaires) *(Tests supplémentaires)*
-7. [Intégration continue & Exécution GitHub Actions](#7-intégration-continue--exécution-github-actions-exécution) *(Exécution)*
+1. [Classes et méthodes sélectionnées](#1-justification-des-classes-et-méthodes-sélectionnées-classes-à-tester)
+2. [ChatUniTest](#2-intégration-de-chatunitest-dans-le-pipeline-maven-ia-et-test)
+3. [Tests générés par ChatUniTest](#3-tests-générés-par-chatunitest-tests-générés)
+4. [Analyse des tests générés](#4-analyse-et-critique-des-tests-générés-documentation-tests)
+5. [Mutation avec PITest](#5-analyse-de-mutation-avec-pitest-mutation--documentation-mutants)
+6. [Tests écrits à la main](#6-tests-supplémentaires-écrits-à-la-main-tests-supplémentaires)
+7. [Exécution GitHub Actions](#7-intégration-continue--exécution-github-actions-exécution)
 
 ---
 
 ## 1. Justification des classes et méthodes sélectionnées *(Classes à tester)*
 
-Conformément aux consignes, deux classes ont été sélectionnées dans les modules autorisés :
-1. **`StringUtils`** dans `tika-core` (couverture initiale : **15%**)
-2. **`PDFParser`** dans `tika-parser-pdf-module` (couverture initiale : **81%**)
+Deux classes ont été sélectionnées dans les modules autorisés :
+1. **`PDFParser`** dans `tika-parser-pdf-module` (couverture initiale : **81%**)
+2. **`StringUtils`** dans `tika-core` (couverture initiale : **15%**)
 
-Ces classes disposaient déjà de tests dans le projet, mais ne couvraient pas 100% du code et laissaient subsister de nombreux mutants vivants.
+`PDFParser` la classe possède son propre fichier de test (`PDFParserTest`),
+mais ne couvre pas 100% du code et laisse des mutants vivants.
 
-### 1.1. Matrice de justification (Modèle RIP : Reachability, Infection, Propagation)
+`StringUtils` illustre un cas particulier. 
+La classe n'avait aucun fichier de test dédié (pas de `StringUtilsTest.java`).
+Pourtant, elle était déjà testée à **15%** de façon indirecte : PITest montre que les mutants de `StringUtils.isBlank` 
+sont tués par `FilenameUtilsTest` et `InputStreamDigesterTest`. La classe avait donc déjà des tests, mais elle ne couvrait 
+pas 100% du code : les méthodes `isEmpty`, `leftPad` et `repeat`, par exemple, n'étaient jamais atteintes.
+Comme nous avions déjà `PDFParser` comme cas « classique », nous avons trouvons intéressant d'ajouter ce cas 
+pour montrer qu'une classe sans fichier de test dédié peut voir une partie de son comportement testée depuis les test d'une autre classe. 
+Le fichier `StringUtilsTest.java` a été généré avec LLM.
 
-| Module | Classe cible | Méthode cible | Couverture initiale (JaCoCo) | Justification & Mutants vivants (RIP) |
+### 1.1. Justification
+
+| Module | Classe cible | Méthode cible | Couverture initiale | Justification & Mutants vivants |
 | :--- | :--- | :--- | :--- | :--- |
-| **`tika-core`** | `StringUtils` | `isEmpty` | **0.0%** (0/9 inst, 0/4 branches) | **Atteignabilité nulle (Reachability = 0)** : Méthode jamais invoquée par les tests existants. 100% des mutants survivaient sans être exécutés. |
-| **`tika-core`** | `StringUtils` | `leftPad` *(2 surcharges)* | **0.0%** (0/109 inst, 0/22 branches) | **Atteignabilité nulle** : Aucune surcharge appelée. Tous les mutants aux bornes, de padding et de vérification null survivaient. |
-| **`tika-core`** | `StringUtils` | `repeat` *(2 surcharges)* | **0.0%** (0/122 inst, 0/23 branches) | **Atteignabilité nulle** : Aucune surcharge appelée. Les mutants des chemins rapides et des boucles survivaient tous. |
-| **`tika-parser-pdf`** | `PDFParser` | `renderPDF` | **0.0%** (0/21 inst, 0/3 lignes) | **Appelant inatteignable** : Appelée uniquement par `renderPagesBeforeParse` qui quitte prématurément car `RENDER_PAGES_BEFORE_PARSE` n'était jamais activé dans les tests originaux. |
-| **`tika-parser-pdf`** | `PDFParser` | `extractSignatures` | **Partielle** (32.7% inst, 60% branches) | **Branche morte** : Les tests existants ne testaient que des champs non signés (`signature == null`). Le bloc d'extraction des métadonnées numériques (lignes 413–427) n'était jamais exécuté. |
-| **`tika-parser-pdf`** | `PDFParser` | `shouldSpool` | **Partielle** (48.1% inst, 30% branches) | **Branches non couvertes & oracle faible (Propagation nulle)** : Les stratégies `RENDER_PAGES_*` n'étaient jamais testées. De plus, spooler sur disque ne modifie pas le texte extrait par les tests, laissant survivre les mutants inversant les booléens. |
+| **`tika-core`** | `StringUtils` | `isEmpty` | 0% | **Atteignabilité nulle** : Méthode jamais invoquée par les tests existants. Tout les mutants survivaient. |
+| **`tika-core`** | `StringUtils` | `leftPad`  | 0% | **Atteignabilité nulle** : Aucune surcharge appelée. Tous les mutants survivaient. |
+| **`tika-core`** | `StringUtils` | `repeat` | 0% | **Atteignabilité nulle** : Aucune surcharge appelée. Tous les mutants survivaient. |
+| **`tika-parser-pdf`** | `PDFParser` | `renderPDF` | 0% | **Appelant inatteignable** : Appelée uniquement par `renderPagesBeforeParse` qui quitte prématurément car `RENDER_PAGES_BEFORE_PARSE` n'était jamais activé dans les tests originaux. |
+| **`tika-parser-pdf`** | `PDFParser` | `extractSignatures` | 32.7% inst, 60% branches | **Branche morte** : Les tests testaient seulement des champs non signés (`signature == null`). Le bloc d'extraction des métadonnées numériques (lignes 413–427) n'était jamais exécuté. |
+| **`tika-parser-pdf`** | `PDFParser` | `shouldSpool` | 48.1% inst, 30% branches | **Branches non couvertes & oracle faible** : Les stratégies `RENDER_PAGES_*` n'étaient jamais testées. De plus, spooler ne modifie pas le texte extrait par les tests, laissant survivre les mutants inversant les booléens. |
 
-### 1.2. Couverture de code initiale (JaCoCo Baseline)
+### 1.2. Couverture JaCoCo initiale
 
-#### `StringUtils` (15% de couverture globale initiale)
+#### `StringUtils` (15% de couverture initiale)
 ![StringUtils Baseline Coverage](media/StringUtils_before.png)
 
-#### `PDFParser` (81% de couverture globale initiale)
+#### `PDFParser` (81% de couverture initiale)
 ![PDFParser Baseline Coverage](media/PDFParser_before.png)
 
 ---
 
-## 2. Intégration de ChatUniTest dans le pipeline Maven *(IA et test)*
+## 2. ChatUniTest
 
-L'outil **[ChatUniTest](https://github.com/ZJU-ACES-ISE/ChatUniTest)** a été configuré au niveau de Maven dans `pom.xml` et `tika-parent/pom.xml` via le plugin officiel :
+L'outil **[ChatUniTest](https://github.com/ZJU-ACES-ISE/ChatUniTest)** a été configuré au niveau de Maven dans `pom.xml` et `tika-parent/pom.xml` via le plugin officiel. Le modèle retenu est le modèle ouvert **`qwen3.5:4b`**, servi localement par **Ollama** (API compatible OpenAI) :
 
 ```xml
 <plugin>
@@ -63,10 +78,10 @@ L'outil **[ChatUniTest](https://github.com/ZJU-ACES-ISE/ChatUniTest)** a été c
   <artifactId>chatunitest-maven-plugin</artifactId>
   <version>2.1.1</version>
   <configuration>
-    <url>http://127.0.0.1:8085/chat/completions</url>
-    <model>gpt-4o-mini</model>
+    <url>http://localhost:11434/v1/chat/completions</url>
+    <model>qwen3.5:4b</model>
     <apiKeys>
-      <openaiKey>${env.OPENAI_API_KEY}</openaiKey>
+      <openaiKey>ollama</openaiKey>
     </apiKeys>
     <maxRounds>3</maxRounds>
     <testNumber>3</testNumber>
@@ -74,16 +89,21 @@ L'outil **[ChatUniTest](https://github.com/ZJU-ACES-ISE/ChatUniTest)** a été c
 </plugin>
 ```
 
+> **Limite matérielle :** le laptop utilisé pour la génération n'était pas assez performante pour héberger `qwen3.5:4b` 
+> localement et générer des tests dans un temps raisonnable. Les tests ont donc été générés en remplaçant l'URL par un 
+> proxy local compatible OpenAI (`http://127.0.0.1:8085/chat/completions`) qui relayait les requêtes vers **Gemini**. 
+> Les tests présentés dans ce rapport proviennent donc de Gemini, et non d'un modèle ouvert exécuté localement.
+> La config Ollama ci-dessus est celle à utiliser sur un ordinateur capable d'héberger le modèle.
 ---
 
-## 3. Tests générés par ChatUniTest *(Tests générés)*
+## 3. Tests générés par ChatUniTest
 
 La génération s'est effectuée méthode par méthode via la commande Maven :
 ```bash
 mvn chatunitest:method -pl <module-path> -DselectMethod=<ClassName>#<methodName>
 ```
 
-Les suites de tests générées et intégrées dans le code source sont réparties comme suit :
+Les tests générées et intégrées dans le code sont réparties comme suit :
 
 1. **`tika-core`** :
    - Fichier : `tika-core/src/test/java/org/apache/tika/utils/StringUtilsTest.java`
@@ -100,22 +120,28 @@ Les suites de tests générées et intégrées dans le code source sont réparti
      - `PDFParser_extractSignatures_7_0_Test.java` : Teste `extractSignatures` avec mocks de `PDDocument` et `PDSignature` pour valider les champs signés.
      - `PDFParser_shouldSpool_8_0_Test.java` : Teste les branches décisionnelles de `shouldSpool` par réflexion.
 
+ Ces fichiers contiennent les tests tels que générés, après les corrections pour compiler et passer Checkstyle. Voir section 4.1).
+ Les tests écrits à la main sont dans des classes séparées, voir section 6 :
+ - `tika-core/src/test/java/org/apache/tika/utils/StringUtilsManualTest.java`
+ - `tika-parser-pdf-module/src/test/java/org/apache/tika/parser/pdf/PDFParserManualTest.java`
 ---
 
-## 4. Analyse et critique des tests générés *(Documentation tests)*
+## 4. Analyse et critique des tests générés
 
 ### 4.1. Autonomie de génération et corrections manuelles nécessaires
 
-Les tests générés par ChatUniTest **ne compilaient et ne s'exécutaient pas directement sans intervention manuelle**. Quatre catégories d'ajustements systématiques ont été requises :
-
-1. **Violation des règles Checkstyle (`AvoidStarImportCheck`) :**
-   ChatUniTest génère systématiquement des imports wildcard (ex. `import static org.junit.jupiter.api.Assertions.*`). Apache Tika impose un Checkstyle strict interdisant les imports étoile (`0 Checkstyle violations`). Tous les imports ont dû être convertis en imports explicites.
-2. **Dépendances de test manquantes (`mockito-core`) :**
+Les tests générés par ChatUniTest **ne compilaient et ne s'exécutaient pas directement sans intervention manuelle**.
+Cinq catégories d'ajustements ont été requises :
+1. **Violation des règles Checkstyle (`AvoidStarImportCheck`) :**  
+   ChatUniTest génère systématiquement des imports wildcard (ex. `import static org.junit.jupiter.api.Assertions.*`). Apache Tika impose un Checkstyle strict interdisant les imports étoile. Tous les imports ont dû être convertis en imports explicites.
+2. **Dépendances de test manquantes (`mockito-core`) :**  
    ChatUniTest utilise abondamment Mockito (`mock()`, `when()`) pour isoler les composants complexes comme `PDDocument`. Ces dépendances ont dû être vérifiées et déclarées dans le scope `<scope>test</scope>` du sous-module.
-3. **Nettoyage des binaires orphelins dans `target/test-classes/` :**
-   Pendant la recherche itérative, ChatUniTest compile des classes temporaires. En cas d'échec d'une itération, des fichiers `.class` orphelins subsistent dans `target/test-classes/`, causant des échecs de build intempestifs avec Surefire.
-4. **Indexation SPI / Composants Tika :**
+3. **Nettoyage des binaires orphelins dans `target/test-classes/` :**  
+   Pendant la recherche itérative, ChatUniTest compile des classes temporaires. En cas d'échec, des fichiers `.class` orphelins subsistent dans `target/test-classes/`, causant des échecs de build avec Surefire.
+4. **Indexation SPI / Composants Tika :**  
    Pour les classes annotées `@TikaComponent` (comme `PDFParser`), un re-build (`mvn compile`) est nécessaire pour régénérer `META-INF/services/` afin d'éviter l'erreur `Unknown component type`.
+5. **Test dépendant du système d'exploitation (`PDFParser_renderPDF_10_0_Test`) :**  
+   ChatUniTest a passé le dossier courant comme fichier d'entrée : `TikaInputStream.get(Paths.get("."))`. Linux accepte d'ouvrir un dossier, donc le test passe en CI, mais Windows le refuse (`AccessDeniedException: .`) et fait échouer `mvn install`. Comme le `Renderer` est simulé par un mock, le contenu du flux n'est jamais lu : il a été remplacé par un flux vide, `TikaInputStream.get(new byte[0])`.
 
 ### 4.2. Comparaison qualitative des oracles : IA vs Écrits à la main
 
@@ -123,8 +149,8 @@ Les tests générés par ChatUniTest **ne compilaient et ne s'exécutaient pas d
 | :--- | :--- | :--- |
 | **Exploration des branches** | **Excellente** : Identifie très efficacement toutes les combinaisons `if/else`, les gardes et les structures de contrôle. | **Ciblée** : Couvre les cas limites d'affaires mais peut oublier des branches secondaires de performance. |
 | **Mocks et réflexion** | **Très bonne** : Génère automatiquement le code de réflexion (`setAccessible(true)`) pour les méthodes privées et initialise les mocks. | **Excellente** : Mocks plus précis, vérifications comportementales (`verify()`, `ArgumentCaptor`). |
-| **Précision des oracles (Assertions)** | **Moyenne à faible** : Tend à générer des vérifications superficielles comme `assertNotNull(result)` (inutile si le mock renvoie un objet factice non nul) ou des assertions directes sur la valeur de retour sans vérifier les effets de bord. | **Forte et spécifique** : Vérification exacte de l'état, vérification des exceptions, interception des arguments et assertions d'identité mémoire (`assertSame`). |
-| **Propagation (Modèle RIP)** | **Faible** : Ne vérifie pas si l'état infecté se propage aux composants aval (ex. si `shouldSpool == true` déclenche réellement l'écriture disque). | **Élevée** : Conception de tests d'intégration ou d'écouteurs validant la chaîne complète d'exécution. |
+| **Précision des oracles (Assertions)** | **Faible** : Tend à générer des vérifications superficielles comme `assertNotNull(result)` (inutile si le mock renvoie un objet factice non nul) ou des assertions directes sur la valeur de retour sans vérifier les effets de bord. | **Forte et spécifique** : Vérification exacte de l'état, vérification des exceptions, interception des arguments et assertions d'identité mémoire (`assertSame`). |
+| **Propagation** | **Faible** : Ne vérifie pas si l'état infecté se propage aux composants aval (ex. si `shouldSpool == true` déclenche réellement l'écriture disque). | **Élevée** : Conception de tests d'intégration ou d'écouteurs validant la chaîne complète d'exécution. |
 
 ### 4.3. Gains de couverture après intégration (JaCoCo)
 
@@ -141,10 +167,10 @@ Les tests générés par ChatUniTest **ne compilaient et ne s'exécutaient pas d
 
 ---
 
-## 5. Analyse de mutation avec PITest *(Mutation & Documentation mutants)*
+## 5. Analyse de mutation avec PITest
 
 ### 5.1. Configuration de PITest
-PITest 1.17.1 a été configuré dans Maven avec le groupe de mutateurs **`STRONGER`** (Conditionals Boundary, Negate Conditionals, Increments, Invert Negatives, Math, Void Method Calls, Return Values, Switch, Remove Conditionals) et le plugin JUnit 5 :
+PITest 1.17.1 a été configuré dans Maven avec le groupe de mutateurs **`STRONGER`** et le plugin JUnit 5 :
 
 ```xml
 <plugin>
@@ -166,77 +192,109 @@ PITest 1.17.1 a été configuré dans Maven avec le groupe de mutateurs **`STRON
 
 ### 5.2. Comparaison des scores de mutation
 
-| Module | Classe cible | Score initial (Tests originaux) | Score avec ChatUniTest | Mutants survivants |
+Les scores portent uniquement sur les mutants des **méthodes ciblées**
+(`isEmpty`, `leftPad`, `repeat` pour `StringUtils` ; `renderPDF`, `extractSignatures`, `shouldSpool` pour `PDFParser`). Un mutant `TIMED_OUT` est compté comme détecté.
+
+| Module | Classe cible | Score initial (tests originaux) | Score avec ChatUniTest | Mutants survivants |
 | :--- | :--- | :---: | :---: | :---: |
-| **`tika-core`** | `StringUtils` | **0%** *(0 / 91 cibles)* | **68.0%** (71 / 104) | **20** |
-| **`tika-parser-pdf`** | `PDFParser` | **0%** *(0 / 23 cibles)* | **73.9%** (17 / 23) | **6** |
+| **`tika-core`** | `StringUtils` | **0%** (0 / 86, tous non couverts) | **76.7%** (66 / 86) | **20** |
+| **`tika-parser-pdf`** | `PDFParser` | **12.5%** (4 / 32 ; 10 survivants, 18 non couverts) | **81.2%** (26 / 32) | **6** |
+
+- **Tests originaux de `StringUtils`** : tous les tests de `tika-core` (aucun fichier `StringUtilsTest` n'existait). Ils ne touchent que `isBlank` (5 mutants tués par `FilenameUtilsTest` et `InputStreamDigesterTest`), jamais les méthodes ciblées.
+- **Tests originaux de `PDFParser`** : tous les tests du module PDF, sauf les tests générés et manuels. Les 4 mutants tués sont dans `extractSignatures` (tests sur des champs de signature non signés).
 
 ### 5.3. Pourquoi certains mutants ont survécu aux tests générés ?
 
-Les tests générés détectent la majorité des mutants inversant les conditions booléennes (`NegateConditionals`), mais laissent survivre **26 mutants** pour trois raisons techniques précises :
+Les tests générés laissent survivre **26 mutants** (20 dans `StringUtils`, 6 dans `PDFParser`) pour trois raisons :
 
-1. **Mutants aux bornes d'égalité zéro (`<= 0` muté en `< 0`) dans `StringUtils` :**
-   ChatUniTest a testé des valeurs positives (`size = 10`) et strictement négatives (`size = -1`), mais a omis la borne exacte `size == 0` ou `repeat = 0`. Quand la vérification `<= 0` est relâchée à `< 0`, l'exécution tombe dans une boucle à 0 itération qui renvoie par coïncidence la même chaîne vide.
-2. **Mutants équivalents d'optimisation de performance :**
-   Dans `StringUtils`, des gardes comme `if (padLen == 1)` ou `if (repeat == 1)` ne sont que des raccourcis de performance pour éviter d'allouer un `StringBuilder`. Si on supprime ces conditions, l'algorithme général s'exécute et produit un résultat textuel strictement identique (`equals`), rendant le mutant indétectable par de simples assertions sur les chaînes.
+1. **Oracle par égalité plutôt que par identité dans `StringUtils` (lignes 80, 107, 139, 176) :**
+   ChatUniTest a bien testé la borne exacte (ex. `leftPad("bat", 3, "z")`, `repeat('a', 0)`), mais avec `assertEquals`. Quand `<= 0` devient `< 0`, le code muté prend le chemin général et construit une **nouvelle** chaîne, égale à celle attendue. `assertEquals` ne voit pas la différence, alors que le code original renvoie l'instance d'origine (ou la constante `EMPTY`).
+2. **Raccourcis de performance (lignes 83, 87, 89, 110, 180, 183) :**
+   Des gardes comme `if (padLen == 1)`, `if (pads == padLen)` ou `if (repeat == 1)` évitent seulement un calcul plus coûteux. Sans elles, l'algorithme général produit une chaîne égale (`equals`). Une partie de ces mutants est tout de même détectable par identité (ligne 180, voir section 6) ou par un cas limite précis (ligne 110) ; les autres sont équivalents.
 3. **Oracle superficiel et masquage dans `PDFParser` :**
-   - Dans `renderPDF`, `assertNotNull(results)` ne vérifiait pas l'appel `renderer.render(...)` (mutant `VoidMethodCallMutator` survivant).
+   - Dans `renderPDF`, `assertNotNull(results)` ne vérifiait pas les métadonnées passées au `Renderer` : le mutant `VoidMethodCallMutator` qui supprime `metadata.set(TikaCoreProperties.TYPE, ...)` (ligne 486) survivait.
    - Dans `extractSignatures`, aucun test n'évaluait une signature ayant un champ nom valide mais une date nulle (`sig.getDate() == null`).
    - Dans `shouldSpool`, la présence d'une stratégie de repli par défaut (`AUTO`) masquait la désactivation des drapeaux individuels.
 
-### 5.4. Commandes de reproduction déterministe
+### 5.4. Commandes de reproduction
 
-L'analyse de mutation est 100% déterministe et reproductible avec les commandes suivantes :
+PITest mute toute la classe ciblée (le plugin Maven n'offre pas d'option pour ne cibler que certaines méthodes) ; les scores ci-dessus sont obtenus en filtrant le rapport `mutations.csv` sur les méthodes ciblées avec `scripts/pit-score.py`.
 
-```bash
-# StringUtils (tika-core) avec tests ChatUniTest
-mvn test-compile org.pitest:pitest-maven:mutationCoverage -pl tika-core \
-  -DtargetClasses=org.apache.tika.utils.StringUtils \
-  -DtargetTests=org.apache.tika.utils.StringUtilsTest
+Les commandes sont pour **PowerShell**, depuis la racine du dépôt.
 
-# PDFParser (tika-parser-pdf-module) sur les méthodes cibles
-mvn test-compile org.pitest:pitest-maven:mutationCoverage \
-  -pl tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module \
-  -DtargetClasses=org.apache.tika.parser.pdf.PDFParser \
-  -DtargetTests='org.apache.tika.parser.pdf.PDFParser_*_Test' \
-  -DtargetMethods=renderPDF,extractSignatures,shouldSpool
+```powershell
+$PDF = "tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module"
+
+# Une seule fois : installer dépendances
+.\mvnw.cmd install -DskipTests -am -pl "tika-core,$PDF"
+
+# StringUtils : tests ChatUniTest seulement
+.\mvnw.cmd test-compile org.pitest:pitest-maven:mutationCoverage -pl tika-core `
+  "-DtargetClasses=org.apache.tika.utils.StringUtils" `
+  "-DtargetTests=org.apache.tika.utils.StringUtilsTest"
+
+# StringUtils : tests ChatUniTest + tests manuels
+.\mvnw.cmd test-compile org.pitest:pitest-maven:mutationCoverage -pl tika-core `
+  "-DtargetClasses=org.apache.tika.utils.StringUtils" `
+  "-DtargetTests=org.apache.tika.utils.StringUtils*Test"
+
+# PDFParser : tests originaux
+.\mvnw.cmd test-compile org.pitest:pitest-maven:mutationCoverage -pl $PDF `
+  "-DtargetClasses=org.apache.tika.parser.pdf.PDFParser" `
+  "-DtargetTests=org.apache.tika.parser.pdf.*" `
+  "-DexcludedTestClasses=org.apache.tika.parser.pdf.PDFParser_*,org.apache.tika.parser.pdf.PDFParserManualTest"
+
+# PDFParser : tests ChatUniTest seulement
+.\mvnw.cmd test-compile org.pitest:pitest-maven:mutationCoverage -pl $PDF `
+  "-DtargetClasses=org.apache.tika.parser.pdf.PDFParser" `
+  "-DtargetTests=org.apache.tika.parser.pdf.PDFParser_*_Test"
+
+# PDFParser : tests ChatUniTest + tests manuels
+.\mvnw.cmd test-compile org.pitest:pitest-maven:mutationCoverage -pl $PDF `
+  "-DtargetClasses=org.apache.tika.parser.pdf.PDFParser" `
+  "-DtargetTests=org.apache.tika.parser.pdf.PDFParser_*_Test,org.apache.tika.parser.pdf.PDFParserManualTest"
 ```
 
 ---
 
-## 6. Tests supplémentaires écrits à la main *(Tests supplémentaires)*
+## 6. Tests écrits à la main
 
-Pour tuer les mutants survivants, des tests manuels à haute spécificité ont été développés.
+Pour tuer les mutants survivants, des tests manuels ont été développés.
 
 ### 6.1. Synthèse de l'amélioration finale
 
 | Module | Classe cible | Score initial | Score ChatUniTest | Score final après ajouts manuels | Bilan |
 | :--- | :--- | :---: | :---: | :---: | :--- |
-| **`tika-parser-pdf`** | `PDFParser` | **0%** | 73.9% (17 / 23) | **100%** (32 / 32 tuables éliminés) | **0 mutant survivant** |
-| **`tika-core`** | `StringUtils` | **0%** | 68.0% (71 / 104) | **76.0%** (79 / 104, force de test 87%) | **Tous les mutants tuables éliminés** *(12 prouvés équivalents)* |
+| **`tika-parser-pdf`** | `PDFParser` | **12.5%** (4 / 32) | 81.2% (26 / 32) | **100%** (32 / 32) | **0 mutant survivant** |
+| **`tika-core`** | `StringUtils` | **0%** (0 / 86) | 76.7% (66 / 86) | **84.9%** (73 / 86) | **13 survivants** |
+
+Les tests manuels sont dans des classes séparées des tests générés : `StringUtilsManualTest` et `PDFParserManualTest`. Pour `StringUtils`, ils tuent 7 mutants de plus (lignes 80, 107, 139 et 180). Les 13 survivants restants :
+- **Lignes 83, 87, 89, 183** (11 mutants) : raccourcis de performance. Le code muté produit une chaîne égale et nouvellement allouée dans les deux cas, donc ces mutants sont équivalents.
+- **Ligne 176** (`repeat <= 0` → `< 0`) : le test 10 ne le tue pas. Avec `repeat = 0`, le code muté renvoie `new StringBuilder().toString()`, et un `StringBuilder` vide renvoie `""`, qui est la même instance que `StringUtils.EMPTY`. Le mutant est donc équivalent.
+- **Ligne 110** (`pads > PAD_LIMIT`, 2 mutants) : le mutant `>` → `>=` **n'est pas équivalent**. Avec `pads == 8192`, il provoque une récursion infinie entre les deux surcharges de `leftPad` (`StackOverflowError`). Il pourrait être tué par un test comme `leftPad("", 8192, 'x')`.
 
 ---
 
-### 6.2. Documentation détaillée des cas de test ajoutés
+### 6.2. Documentation des cas de test ajoutés
 
 ####  Tests manuels pour `PDFParser`
 
 #### Test 1 : `testRenderPDF`
-- **Classe :** `org.apache.tika.parser.pdf.PDFParser_renderPDF_10_0_Test`
+- **Classe :** `org.apache.tika.parser.pdf.PDFParserManualTest`
 - **Mutant ciblé :** Ligne 486 (`VoidMethodCallMutator` supprimant l'appel `metadata.set(TikaCoreProperties.TYPE, ...)`).
 - **Intention du test :** Vérifier que `renderPDF` assigne explicitement le type MIME (`application/pdf`) aux métadonnées transmises au `Renderer`.
-- **Motivation des données :** `TikaInputStream` standard et `ParseContext` propre.
+- **Motivation des données :** `TikaInputStream` vide (`new byte[0]`), car le `Renderer` est simulé et ne lit jamais le flux, et `ParseContext` neuf.
 - **Explication de l'oracle :** Utilisation d'un `ArgumentCaptor<Metadata>` Mockito pour intercepter l'objet reçu par `mockRenderer.render(...)`. L'oracle vérifie `assertEquals("application/pdf", captor.getValue().get(TikaCoreProperties.TYPE))`. Si la ligne 486 est supprimée, la valeur est `null` et le test échoue.
 
 #### Test 2 : `testExtractSignaturesNullDate`
-- **Classe :** `org.apache.tika.parser.pdf.PDFParser_extractSignatures_7_0_Test`
+- **Classe :** `org.apache.tika.parser.pdf.PDFParserManualTest`
 - **Mutant ciblé :** Ligne 415 (`RemoveConditionalMutator` remplaçant `if (date != null)` par `true`).
 - **Intention du test :** Vérifier qu'une signature sans date (`null`) n'enregistre aucune date invalide dans les métadonnées.
 - **Motivation des données :** Signature simulée avec un nom valide (`"Test Signer"`) et une date explicitement `null`.
 - **Explication de l'oracle :** Utilisation d'un `spy(new Metadata())` Mockito pour vérifier `verify(metadata, never()).add(eq(TikaCoreProperties.SIGNATURE_DATE), any())`. Si le garde est supprimé, la méthode est appelée et l'assertion échoue.
 
 #### Tests 3 à 6 : Isolation des branches conditionnelles de `shouldSpool`
-- **Classe :** `org.apache.tika.parser.pdf.PDFParser_shouldSpool_8_0_Test`
+- **Classe :** `org.apache.tika.parser.pdf.PDFParserManualTest`
   - `testImageStrategyRenderPagesBeforeParse`
   - `testImageStrategyRenderPagesAtPageEnd`
   - `testExtractIncrementalUpdateInfoTrue`
@@ -251,35 +309,36 @@ Pour tuer les mutants survivants, des tests manuels à haute spécificité ont �
 #### Tests manuels pour `StringUtils`
 
 #### Test 7 : `testLeftPadStringNoPaddingNeeded`
-- **Classe :** `org.apache.tika.utils.StringUtilsTest`
+- **Classe :** `org.apache.tika.utils.StringUtilsManualTest`
 - **Mutant ciblé :** Ligne 80 (`ConditionalsBoundaryMutator` transformant `pads <= 0` en `< 0`).
 - **Intention du test :** Vérifier que lorsque la taille demandée est égale à la longueur (`pads == 0`), la méthode renvoie la référence exacte de la chaîne sans réallocation.
 - **Motivation des données :** `new String("bat")` (longueur 3) avec `size = 3` (borne exacte) et chaîne de remplissage `"xyz"`.
 - **Explication de l'oracle :** `assertSame(str, StringUtils.leftPad(str, 3, "xyz"))`. Si `<=` devient `<`, l'exécution concatène une chaîne vide allouant une nouvelle instance. `assertSame` vérifie l'identité de référence et tue le mutant.
 
 #### Test 8 : `testLeftPadCharNoPaddingNeeded`
-- **Classe :** `org.apache.tika.utils.StringUtilsTest`
+- **Classe :** `org.apache.tika.utils.StringUtilsManualTest`
 - **Mutant ciblé :** Ligne 107 (`ConditionalsBoundaryMutator` transformant `pads <= 0` en `< 0`).
 - **Intention du test :** Vérifier que `leftPad(str, size, padChar)` renvoie l'instance d'origine sans instancier de tableau de caractères lorsque aucun padding n'est nécessaire.
 - **Motivation des données :** `new String("abc")` avec `size = 3` et caractère `'x'`.
 - **Explication de l'oracle :** `assertSame(str, StringUtils.leftPad(str, 3, 'x'))`. Le mutant alloue un nouvel objet et échoue sur `assertSame`.
 
 #### Test 9 : `testRepeatCharZeroOrNegative`
-- **Classe :** `org.apache.tika.utils.StringUtilsTest`
+- **Classe :** `org.apache.tika.utils.StringUtilsManualTest`
 - **Mutant ciblé :** Ligne 139 (`ConditionalsBoundaryMutator` transformant `repeat <= 0` en `< 0`).
 - **Intention du test :** Vérifier que répéter un caractère 0 fois renvoie la constante globale `StringUtils.EMPTY` plutôt que d'allouer un `char[0]`.
 - **Motivation des données :** Caractère `'a'` avec borne `repeat = 0`.
 - **Explication de l'oracle :** `assertSame(StringUtils.EMPTY, StringUtils.repeat('a', 0))`. Le mutant alloue un nouveau `String` vide qui ne correspond pas à la constante mise en cache.
 
 #### Test 10 : `testRepeatStringZeroOrNegative`
-- **Classe :** `org.apache.tika.utils.StringUtilsTest`
+- **Classe :** `org.apache.tika.utils.StringUtilsManualTest`
 - **Mutant ciblé :** Ligne 176 (`ConditionalsBoundaryMutator` transformant `repeat <= 0` en `< 0`).
 - **Intention du test :** Vérifier que répéter une chaîne 0 fois renvoie immédiatement `StringUtils.EMPTY` sans créer de `StringBuilder`.
 - **Motivation des données :** Chaîne `"abc"` avec borne `repeat = 0`.
 - **Explication de l'oracle :** `assertSame(StringUtils.EMPTY, StringUtils.repeat("abc", 0))`.
+- **Résultat PITest :** le mutant de la ligne 176 **survit**. Le chemin muté renvoie `new StringBuilder().toString()`, et sur le JDK utilisé, un `StringBuilder` vide renvoie le littéral `""`, c'est-à-dire la même instance que `StringUtils.EMPTY` (voir section 6.1).
 
 #### Test 11 : `testRepeatStringOneOrEmptyInput`
-- **Classe :** `org.apache.tika.utils.StringUtilsTest`
+- **Classe :** `org.apache.tika.utils.StringUtilsManualTest`
 - **Mutant ciblé :** Ligne 180 (`RemoveConditionalMutator` sur `repeat == 1 || inputLength == 0`).
 - **Intention du test :** Vérifier que répéter une chaîne avec `repeat = 1` ou répéter une chaîne vide renvoie directement l'instance passée en argument.
 - **Motivation des données :** `new String("abc")` avec `repeat = 1`, et `new String("")` avec `repeat = 5`.
@@ -287,22 +346,21 @@ Pour tuer les mutants survivants, des tests manuels à haute spécificité ont �
 
 ---
 
-## 7. Intégration continue & Exécution GitHub Actions *(Exécution)*
+## 7. GitHub Actions
 
-Un workflow GitHub Actions automatisé a été mis en place dans [`.github/workflows/run-new-tests.yml`](.github/workflows/run-new-tests.yml) pour garantir la validation continue de la suite de tests et de l'analyse de mutation :
-
+Un workflow GitHub Actions automatisé dans [`.github/workflows/run-new-tests.yml`](.github/workflows/run-new-tests.yml) 
 1. **Validation Checkstyle stricte :**
    Exécute `mvn checkstyle:check` pour garantir 0 violation sur `tika-core` et `tika-parser-pdf-module`.
 2. **Compilation et installation des dépendances du réacteur :**
    Exécute `mvn install -DskipTests -am` sur les modules ciblés.
 3. **Exécution de tous les nouveaux tests (ChatUniTest et manuels) :**
-   Lance spécifiquement `StringUtilsTest`, `PDFParser_extractSignatures_7_0_Test`, `PDFParser_renderPDF_10_0_Test` et `PDFParser_shouldSpool_8_0_Test` :
-   ```bash
-   mvn test -B -pl tika-core,tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module \
-     -Dtest='StringUtilsTest,PDFParser_extractSignatures_7_0_Test,PDFParser_renderPDF_10_0_Test,PDFParser_shouldSpool_8_0_Test'
+   Lance les tests générés (`StringUtilsTest`, `PDFParser_extractSignatures_7_0_Test`, `PDFParser_renderPDF_10_0_Test`, `PDFParser_shouldSpool_8_0_Test`) et les tests manuels (`StringUtilsManualTest`, `PDFParserManualTest`) :
+   ```powershell
+   .\mvnw.cmd test -B -pl "tika-core,tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module" `
+     "-Dtest=StringUtilsTest,StringUtilsManualTest,PDFParser_extractSignatures_7_0_Test,PDFParser_renderPDF_10_0_Test,PDFParser_shouldSpool_8_0_Test,PDFParserManualTest"
    ```
 4. **Exécution de l'analyse de mutation PITest :**
-   Génère les rapports de mutation sur `PDFParser` et `StringUtils`.
+   Génère les rapports de mutation sur `PDFParser` et `StringUtils` avec les tests générés et les tests manuels.
 5. **Archivage des rapports :**
    Téléverse automatiquement les rapports HTML de PITest en tant qu'artefacts de build (`pit-report-pdfparser` et `pit-report-stringutils`).
 

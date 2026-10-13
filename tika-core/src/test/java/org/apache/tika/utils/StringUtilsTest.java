@@ -19,7 +19,6 @@ package org.apache.tika.utils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -81,9 +80,8 @@ public class StringUtilsTest {
 
     @Test
     public void testLeftPadStringNoPaddingNeeded() {
-        String str = new String("bat");
-        assertSame(str, StringUtils.leftPad(str, 3, "xyz"));
-        assertSame(str, StringUtils.leftPad(str, 2, "xyz"));
+        assertEquals("bat", StringUtils.leftPad("bat", 3, "z"));
+        assertEquals("bat", StringUtils.leftPad("bat", 2, "z"));
     }
 
     @Test
@@ -121,9 +119,8 @@ public class StringUtilsTest {
 
     @Test
     public void testLeftPadCharNoPaddingNeeded() {
-        String str = new String("abc");
-        assertSame(str, StringUtils.leftPad(str, 3, 'x'));
-        assertSame(str, StringUtils.leftPad(str, 2, 'x'));
+        assertEquals("abc", StringUtils.leftPad("abc", 3, 'x'));
+        assertEquals("abc", StringUtils.leftPad("abc", 2, 'x'));
     }
 
     @Test
@@ -149,8 +146,8 @@ public class StringUtilsTest {
 
     @Test
     public void testRepeatCharZeroOrNegative() {
-        assertSame(StringUtils.EMPTY, StringUtils.repeat('a', 0));
-        assertSame(StringUtils.EMPTY, StringUtils.repeat('a', -1));
+        assertEquals("", StringUtils.repeat('a', 0));
+        assertEquals("", StringUtils.repeat('a', -1));
     }
 
     @Test
@@ -171,16 +168,14 @@ public class StringUtilsTest {
 
     @Test
     public void testRepeatStringZeroOrNegative() {
-        assertSame(StringUtils.EMPTY, StringUtils.repeat("abc", 0));
-        assertSame(StringUtils.EMPTY, StringUtils.repeat("abc", -1));
+        assertEquals("", StringUtils.repeat("abc", 0));
+        assertEquals("", StringUtils.repeat("abc", -1));
     }
 
     @Test
     public void testRepeatStringOneOrEmptyInput() {
-        String str = new String("abc");
-        assertSame(str, StringUtils.repeat(str, 1));
-        String empty = new String("");
-        assertSame(empty, StringUtils.repeat(empty, 5));
+        assertEquals("abc", StringUtils.repeat("abc", 1));
+        assertEquals("", StringUtils.repeat("", 5));
     }
 
     @Test

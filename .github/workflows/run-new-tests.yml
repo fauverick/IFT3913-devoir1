@@ -37,22 +37,21 @@ jobs:
         run: |
           mvn test -B \
             -pl tika-core,tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module \
-            -Dtest='StringUtilsTest,PDFParser_extractSignatures_7_0_Test,PDFParser_renderPDF_10_0_Test,PDFParser_shouldSpool_8_0_Test'
+            -Dtest='StringUtilsTest,StringUtilsManualTest,PDFParser_extractSignatures_7_0_Test,PDFParser_renderPDF_10_0_Test,PDFParser_shouldSpool_8_0_Test,PDFParserManualTest'
 
       - name: Run PITest Mutation Analysis on PDFParser
         run: |
           mvn org.pitest:pitest-maven:mutationCoverage -B \
             -pl tika-parsers/tika-parsers-standard/tika-parsers-standard-modules/tika-parser-pdf-module \
             -DtargetClasses=org.apache.tika.parser.pdf.PDFParser \
-            -DtargetTests='org.apache.tika.parser.pdf.PDFParser_*_Test' \
-            -DtargetMethods=renderPDF,extractSignatures,shouldSpool
+            -DtargetTests='org.apache.tika.parser.pdf.PDFParser_*_Test,org.apache.tika.parser.pdf.PDFParserManualTest'
 
       - name: Run PITest Mutation Analysis on StringUtils
         run: |
           mvn org.pitest:pitest-maven:mutationCoverage -B \
             -pl tika-core \
             -DtargetClasses=org.apache.tika.utils.StringUtils \
-            -DtargetTests=org.apache.tika.utils.StringUtilsTest
+            -DtargetTests='org.apache.tika.utils.StringUtils*Test'
 
       - name: Upload PDFParser PITest Report
         if: always()

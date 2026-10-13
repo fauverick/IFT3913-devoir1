@@ -72,10 +72,10 @@
         <artifactId>chatunitest-maven-plugin</artifactId>
         <version>2.1.1</version>
         <configuration>
-          <url>http://127.0.0.1:8085/chat/completions</url>
-          <model>gpt-4o-mini</model>
+          <url>http://localhost:11434/v1/chat/completions</url>
+          <model>qwen3.5:4b</model>
           <apiKeys>
-            <openaiKey>${env.GEMINI_API_KEY}</openaiKey>
+            <openaiKey>ollama</openaiKey>
           </apiKeys>
           <maxRounds>3</maxRounds>
           <testNumber>3</testNumber>
